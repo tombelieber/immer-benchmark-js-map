@@ -1,11 +1,7 @@
 "use strict"
 
 import {measure} from "./measure.mjs"
-import {
-	enablePatches,
-	produce,
-	setAutoFreeze
-} from "../dist/immer.mjs"
+import {enablePatches, produce, setAutoFreeze} from "../dist/immer.mjs"
 import cloneDeep from "lodash.clonedeep"
 import immutable from "immutable"
 import Seamless from "seamless-immutable"
@@ -19,8 +15,9 @@ function freeze(x) {
 }
 
 const MAX = 50000
-const MODIFY_FACTOR = 0.1
+const MODIFY_FACTOR = 1 // 0.1
 const baseState = []
+const baseMap = new Map()
 let frozenBazeState
 let immutableJsBaseState
 let seamlessBaseState
@@ -28,6 +25,11 @@ let seamlessBaseState
 // produce the base state
 for (let i = 0; i < MAX; i++) {
 	baseState.push({
+		todo: "todo_" + i,
+		done: false,
+		someThingCompletelyIrrelevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+	})
+	baseMap.set(i, {
 		todo: "todo_" + i,
 		done: false,
 		someThingCompletelyIrrelevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -232,5 +234,15 @@ measure(
 			},
 			function() {}
 		)
+	}
+)
+
+measure(
+	"native - JS Map mutation",
+	() => ({draft: cloneDeep(baseMap)}),
+	({draft}) => {
+		for (let i = 0; i < MAX * MODIFY_FACTOR; i++) {
+			draft.get(i).done = true
+		}
 	}
 )

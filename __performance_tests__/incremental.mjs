@@ -13,11 +13,12 @@ function createTestObject() {
 	}
 }
 
-const MAX = 1000
+const MAX = 1000 * 10
 const baseState = {
 	ids: [],
 	map: Object.create(null)
 }
+const baseMap = new Map()
 
 let immutableJsBaseState
 
@@ -65,22 +66,22 @@ measure(
 		}
 	}
 )
-
-measure(
-	"immer",
-	() => {
-		setAutoFreeze(false)
-		return baseState
-	},
-	state => {
-		for (let i = 0; i < MAX; i++) {
-			state = produce(state, draft => {
-				draft.ids.push(i)
-				draft.map[i] = createTestObject()
-			})
-		}
-	}
-)
+// * this took too long
+// measure(
+// 	"immer",
+// 	() => {
+// 		setAutoFreeze(false)
+// 		return baseState
+// 	},
+// 	state => {
+// 		for (let i = 0; i < MAX; i++) {
+// 			state = produce(state, draft => {
+// 				draft.ids.push(i)
+// 				draft.map[i] = createTestObject()
+// 			})
+// 		}
+// 	}
+// )
 
 measure(
 	"immer - single produce",
@@ -95,5 +96,15 @@ measure(
 				draft.map[i] = createTestObject()
 			}
 		})
+	}
+)
+
+measure(
+	"native - JS Map",
+	() => cloneDeep(baseMap),
+	state => {
+		for (let i = 0; i < MAX; i++) {
+			state.set(i, createTestObject())
+		}
 	}
 )

@@ -15,17 +15,26 @@ import dataSet from "./data.json"  assert { type: "json" }
 const baseState = {
 	data: null
 }
+const baseMap = new Map([['data', null]])
 const frozenBazeState = deepFreeze(cloneDeep(baseState))
 const immutableJsBaseState = fromJS(baseState)
 const seamlessBaseState = Seamless.from(baseState)
 
-const MAX = 10000
+const MAX = 10000 
 
 measure(
 	"just mutate",
 	() => ({draft: cloneDeep(baseState)}),
 	({draft}) => {
 		draft.data = dataSet
+	}
+)
+
+measure(
+	"native - JS Map just set Map",
+	() => ({draft: cloneDeep(baseMap)}),
+	({draft}) => {
+		draft.set('data', dataSet)
 	}
 )
 
@@ -88,4 +97,10 @@ measure("immer - with autofreeze * " + MAX, () => {
 		produce(frozenBazeState, draft => {
 			draft.data = dataSet
 		})
+})
+
+measure("native - JS Map * " + MAX, () => {
+	for (let i = 0;i < MAX;i++) {
+		baseMap.set(`data`, dataSet);
+	}
 })
